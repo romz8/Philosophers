@@ -93,3 +93,25 @@ int	check_arguments(int argc, char **argv)
 	}
 	return (0);
 }
+
+void	message(t_philo *philo, int type)
+{
+	long long start_time;
+
+	pthread_mutex_lock(&philo->table->mutex_table);
+	start_time = philo->table->start_time;
+	
+	if (type == DIED)
+		printf(RED "%lld %i died\n" RESET, timestamp_ms() - start_time, philo->id);
+	else if (type == FORK)
+		printf("%lld %i has taken a fork\n", timestamp_ms() - start_time, philo->id);
+	else if (type == EATING)
+		printf(GREEN "%lld %i is eating\n" RESET, timestamp_ms() - start_time, philo->id);
+	else if (type == SLEEPING)
+		printf(BLUE "%lld %i is sleeping\n" RESET, timestamp_ms() - start_time, philo->id);
+	else if (type == THINKING)
+		printf(YELLOW "%lld %i is thinking\n" RESET, timestamp_ms() - start_time, philo->id);
+	pthread_mutex_unlock(&philo->table->mutex_table);
+	return ;
+
+}
