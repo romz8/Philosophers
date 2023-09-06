@@ -27,7 +27,6 @@ int main(int argc, char **argv)
 {
 	t_table table;
 	pthread_mutex_t *forks;
-	t_philo	*philo;
 
 	if (check_arguments(argc, argv))
 		return (1);
@@ -44,15 +43,16 @@ int main(int argc, char **argv)
 	else
 		table.is_bounded = 0;
 	table.start_time = 0;
-	table.is_running = 1;
+	table.is_over = 0;
 	forks = NULL;
 	pthread_mutex_init(&table.time_lock, NULL);
 	pthread_mutex_init(&table.death_lock, NULL);
 	pthread_mutex_init(&table.write_lock, NULL);
 	init_forks(forks, &table);
-	philo = init_philosophers(&table);
-	table.philos = philo; // could be optimized leater in refacto
-	thread_dinner(philo, &table);
+	table.philos = init_philosophers(&table);
+	thread_dinner(table.philos, &table);
+	while (simulation_continue(&table));
+	stop_simulation(&table);
 	//printf("the death count is %i\n", table.death_count);
 	//free(forks); - do a proper function carefull
 	//pthread_mutex_destroy(&table.mutex_table);
@@ -118,8 +118,6 @@ t_philo	*init_philosophers(t_table *table)
 	{
 		philo[i].id = i + 1;
 		philo[i].meal_count = 0; 
-		//philo[i].meal_max = table->meal_max; 
-		//philo[i].is_bounded = table->is_bounded; 
 		philo[i].left_fork = &table->forks[i];
 		philo[i].right_fork = &table->forks[(i + 1) % table->total];
 		philo[i].table = table;
@@ -149,12 +147,42 @@ void	thread_dinner(t_philo *philo, t_table *table)
 	pthread_mutex_lock(&philo->table->time_lock);
 	table->start_time = get_time_ms(); //to make sure time doesn't start while everybody is seated
 	pthread_mutex_unlock(&philo->table->time_lock);
-	//while (simulation_conditions(table))
-	//	usleep(5);
+}
+
+int	simulation_continue(t_table *table)
+{
+	int	i;
+	long long death_time;
+	
+	i = 0;
+	while (get_time_ms() < table->start_time || !table->start_time)
+		usleep(100);
+	while (i < table->total)
+	{
+		pthread_mutex_lock(&table->philos[i].philo_lock);
+		death_time = table->philos[i].death_time;
+		pthread_mutex_unlock(&table->philos[i].philo_lock);
+		if (get_time_ms() >= death_time && death_time)
+		{
+			message(&table->philos[i], DIED);
+			return (0);
+		}
+		i++;
+	}
+	return (1);
+}
+
+void	stop_simulation(t_table *table)
+{
+	int		i;
+	t_philo *philos;
+
+	philos = table->philos;
 	i = 0;
 	while (i < table->total)
 	{
-		pthread_join(philo[i].thread, NULL);
+		pthread_join(philos[i].thread, NULL);
 		i++;
 	}
+	return ;
 }

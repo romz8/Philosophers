@@ -41,7 +41,7 @@ typedef struct s_table
 	int				meal_max;
 	int				is_bounded;
 	int				death_count;
-	int				is_running;
+	int				is_over;
 	long long			start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	write_lock;
@@ -56,7 +56,6 @@ typedef struct s_philo
 	int				meal_count;
 	int				meal_max;
 	long long		death_time;
-	int				is_eating;
 	pthread_t		thread;
 	pthread_mutex_t	*left_fork;
 	pthread_mutex_t	*right_fork;
@@ -65,6 +64,7 @@ typedef struct s_philo
 }	t_philo;
 
 int	ft_atoi(const char *s);
+int	ft_isdigit(int c);
 long long get_time_ms(void);
 void	*philo_routine(void *data);
 void	philo_death_risk(long long last_meal, t_philo *philo);
@@ -77,9 +77,10 @@ void	thread_dinner(t_philo *philo, t_table *table);
 int		check_arguments(int argc, char **argv);
 int		simulation_conditions(t_table *table);
 void	eating_permission(t_philo *philo);
-void	*death_risk_thread(void *input);
+//void	*death_risk_thread(void *input);
 int		death_risk(t_philo *philo);
-void	end_simulation(t_table *table);
+void	stop_simulation(t_table *table);
+int	simulation_continue(t_table *table);
 void	message(t_philo *philo, int type);
 void	pickup_forks(t_philo *philo);
 void	philo_sleep(int time_ms, t_table *table);

@@ -12,40 +12,6 @@
 
 #include "philo.h"
 
-int	ft_isdigit(int c)
-{
-	if (c >= 48 && c <= 57)
-		return (1);
-	else
-		return (0);
-}
-
-int	ft_atoi(const char *str)
-{
-	int	i;
-	int	sign;
-	int	nbr;
-
-	i = 0;
-	sign = 1;
-	nbr = 0;
-	while (str[i] && (str[i] == ' ' || str[i] == '\n' || str[i] == '\t'
-			|| str[i] == '\v' || str[i] == '\f' || str[i] == '\r'))
-		i++;
-	if (str[i] && (str[i] == '-' || str[i] == '+'))
-	{
-		if (str[i] == '-')
-			sign *= -1;
-		i++;
-	}
-	while (str[i] && ft_isdigit(str[i]))
-	{
-		nbr = (str[i] - 48) + nbr * 10;
-		i++;
-	}
-	return (sign * nbr);
-}
-
 long long get_time_ms(void)
 {
 	struct timeval tv;
@@ -81,34 +47,16 @@ void	clean_forks(pthread_mutex_t *forks, int n)
 	free(forks);
 }
 
-int	check_arguments(int argc, char **argv)
-{
-	int i;
-	int	j;
 
-	if (argc < 5)
-		return (1);
-	i = 0;
-	while (++i < argc - 1)
-	{
-		j = -1;
-		while (argv[i][++j])
-		{
-			if (!ft_isdigit(argv[i][j]))
-			{
-			printf("Argument %i wrong - contain letter\n", i);
-			return (1);
-			}
-		}
-		if (ft_atoi(argv[i]) <= 0)
-		{
-			printf("Argument %i wrong - (negative number or zero)\n", i);
-			return (1);
-		}
-	}
-	return (0);
-}
 
+/*
+this function display what event philospher of id X did a what time
+1. catch the time of start of the simulation and lock the code with a mutex (to impede all philospohers
+to write to STDOUT at the same time)
+2. based on the type of essage invoked, display the correct message with philo id and time_diff
+3. if the philosopher DIED -> increased death count
+4. unlock the mutex code so waiting philosopher can expess themselves
+*/
 void	message(t_philo *philo, int type)
 {
 	long long start_time;
@@ -116,11 +64,16 @@ void	message(t_philo *philo, int type)
 	pthread_mutex_lock(&philo->table->write_lock);
 	start_time = philo->table->start_time;
 	
+	if (!simulation_conditions(philo->table))
+	{
+		pthread_mutex_unlock(&philo->table->write_lock);
+		return;
+	}
 	if (type == DIED)
 	{
 		printf(RED "%lld %i died\n" RESET, get_time_ms() - start_time, philo->id);
 		pthread_mutex_lock(&philo->table->death_lock);
-		philo->table->death_count++;
+		philo->table->is_over =1;
 		pthread_mutex_unlock(&philo->table->death_lock);
 	}
 	else if (type == FORK)
