@@ -14,56 +14,100 @@
 
 void   philo_think(t_philo *philo)
 {
+	if (!simulation_conditions(philo->table))
+		return ;
 	message(philo, THINKING);
+}
+
+void	pickup_forks(t_philo *philo)
+{
+	if (philo->id % 2 == 0)
+	{
+		pthread_mutex_lock(philo->right_fork);
+		message(philo, FORK);
+		pthread_mutex_lock(philo->left_fork);
+		message(philo, FORK);
+	}
+	else 
+	{
+		pthread_mutex_lock(philo->left_fork);
+		message(philo, FORK);
+		pthread_mutex_lock(philo->right_fork);
+		message(philo, FORK);
+	}
 }
 
 void	philo_eat_sleep(t_philo *philo)
 {
-	pthread_mutex_lock(philo->left_fork);
-	message(philo, FORK);
-	pthread_mutex_lock(philo->right_fork);
-	message(philo, FORK);
-
-	pthread_mutex_lock(&philo->philo_lock);
-	philo->is_eating = 1;
+	if (!simulation_conditions(philo->table))
+		return ;
+	pickup_forks(philo);
+	//philo->is_eating = 1;
 	message(philo, EATING);
-	philo->death_time = timestamp_ms() + philo->table->time_die;
-	usleep(philo->table->time_eat);
-	philo->is_eating = 0;
+	philo->death_time = get_time_ms() + philo->table->time_die;
+	philo_sleep(philo->table->time_eat, philo->table);
+	//philo->is_eating = 0;
 	philo->meal_count++;
-	pthread_mutex_unlock(&philo->philo_lock);
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
 	message(philo, SLEEPING);
-	usleep(philo->table->time_sleep);
+	philo_sleep(philo->table->time_sleep, philo->table);
 }
 
 void	*philo_routine(void *input)
 {
 	t_philo *philo;
-	//long long	init_time;
+	long long	init_time;
 	
 	philo = (t_philo *) input;
-	/*while(1)
+	while(1)
 	{
-		pthread_mutex_lock(&philo->table->mutex_table);
+		pthread_mutex_lock(&philo->table->time_lock);
 		init_time = philo->table->start_time;
-		pthread_mutex_unlock(&philo->table->mutex_table);
+		pthread_mutex_unlock(&philo->table->time_lock);
 		if (init_time != 0)
 			break;
 		usleep(5);
-	} */
-	philo->death_time = timestamp_ms() + philo->table->time_die;
-	pthread_create(&philo->life_thread, NULL, death_risk_thread, (void *) philo);
-	while (simulation_conditions(philo) != 0)
+	}
+	philo->death_time = get_time_ms() + philo->table->time_die;
+	while (!death_risk(philo))
 	{
 		philo_eat_sleep(philo);
 		philo_think(philo);
 	}
-	pthread_join(philo->life_thread, NULL);
 	return (NULL);
 }
 
+int death_risk(t_philo *philo)
+{
+
+	pthread_mutex_lock(&philo->philo_lock);
+	if (get_time_ms() >= philo->death_time)
+	{
+		message(philo, DIED);
+		pthread_mutex_unlock(&philo->philo_lock);
+		return (1);
+	}
+	else
+	{
+		pthread_mutex_unlock(&philo->philo_lock);
+		return (0);
+	}
+}
+
+int	simulation_conditions(t_table *table)
+{
+	
+	int death_count_local;
+	
+	pthread_mutex_lock(&table->death_lock);
+	death_count_local = table->death_count;
+	pthread_mutex_unlock(&table->death_lock);
+	if (death_count_local > 0)
+		return (0);
+	return (1);
+}
+/*
 void	eating_permission(t_philo *philo)
 {
 	t_philo philo_left;
@@ -91,14 +135,14 @@ void	eating_permission(t_philo *philo)
 	while (!(philo_left.is_eating == 0 && philo_right.is_eating == 0))
 		usleep(10);
 	return;
-}
+} */
 
-void	*death_risk_thread(void *input)
+
+
+/*void	*death_risk_thread(t_philo *philo)
 {
-	t_philo *philo;
 
-	philo = (t_philo *) input;
-	while (simulation_conditions(philo) != 0)
+	while (simulation_conditions(philo))
 	{
 		pthread_mutex_lock(&philo->philo_lock);
 		if (timestamp_ms() >= philo->death_time && philo->is_eating == 0)
@@ -110,21 +154,11 @@ void	*death_risk_thread(void *input)
 		else
 			pthread_mutex_unlock(&philo->philo_lock);
 	}
-	return (NULL);
-}
-
-int	simulation_conditions(t_philo *philo)
-{
-	
-	int death_count_local;
-	
-	pthread_mutex_lock(&philo->table->mutex_table);
-	death_count_local = philo->table->death_count;
-	pthread_mutex_unlock(&philo->table->mutex_table);
-	if (death_count_local > 0)
-		return (0);
 	return (1);
 }
+*/
+
+
 
 /*
 void	end_simulation(t_table *table)

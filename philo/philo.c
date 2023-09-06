@@ -46,14 +46,16 @@ int main(int argc, char **argv)
 	table.start_time = 0;
 	table.is_running = 1;
 	forks = NULL;
-	pthread_mutex_init(&table.mutex_table, NULL);
+	pthread_mutex_init(&table.time_lock, NULL);
+	pthread_mutex_init(&table.death_lock, NULL);
+	pthread_mutex_init(&table.write_lock, NULL);
 	init_forks(forks, &table);
 	philo = init_philosophers(&table);
 	table.philos = philo; // could be optimized leater in refacto
 	thread_dinner(philo, &table);
 	//printf("the death count is %i\n", table.death_count);
 	//free(forks); - do a proper function carefull
-	pthread_mutex_destroy(&table.mutex_table);
+	//pthread_mutex_destroy(&table.mutex_table);
 	//clean_forks(forks, table.total);
 	return (0);
 }
@@ -144,9 +146,11 @@ void	thread_dinner(t_philo *philo, t_table *table)
 		pthread_create(&philo[i].thread, NULL, philo_routine, &philo[i]);
 		i++;
 	}
-	pthread_mutex_lock(&philo->table->mutex_table);
-	table->start_time = timestamp_ms(); //to make sure time doesn't start while everybody is seated
-	pthread_mutex_unlock(&philo->table->mutex_table);
+	pthread_mutex_lock(&philo->table->time_lock);
+	table->start_time = get_time_ms(); //to make sure time doesn't start while everybody is seated
+	pthread_mutex_unlock(&philo->table->time_lock);
+	//while (simulation_conditions(table))
+	//	usleep(5);
 	i = 0;
 	while (i < table->total)
 	{

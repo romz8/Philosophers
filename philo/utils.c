@@ -46,11 +46,26 @@ int	ft_atoi(const char *str)
 	return (sign * nbr);
 }
 
-long long timestamp_ms(void)
+long long get_time_ms(void)
 {
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
-	return ((long long) tv.tv_sec * 1000 + tv.tv_usec / 1000);
+
+	return (tv.tv_sec * 1000 + (tv.tv_usec / 1000));
+}
+
+void	philo_sleep(int time_ms, t_table *table)
+{
+	long long time;
+
+	time = get_time_ms();
+
+	while (get_time_ms() - time < time_ms)
+	{
+		if (!simulation_conditions(table))
+			break;
+		usleep(100);
+	}
 }
 
 void	clean_forks(pthread_mutex_t *forks, int n)
@@ -98,20 +113,25 @@ void	message(t_philo *philo, int type)
 {
 	long long start_time;
 
-	pthread_mutex_lock(&philo->table->mutex_table);
+	pthread_mutex_lock(&philo->table->write_lock);
 	start_time = philo->table->start_time;
 	
 	if (type == DIED)
-		printf(RED "%lld %i died\n" RESET, timestamp_ms() - start_time, philo->id);
+	{
+		printf(RED "%lld %i died\n" RESET, get_time_ms() - start_time, philo->id);
+		pthread_mutex_lock(&philo->table->death_lock);
+		philo->table->death_count++;
+		pthread_mutex_unlock(&philo->table->death_lock);
+	}
 	else if (type == FORK)
-		printf("%lld %i has taken a fork\n", timestamp_ms() - start_time, philo->id);
+		printf("%lld %i has taken a fork\n", get_time_ms() - start_time, philo->id);
 	else if (type == EATING)
-		printf(GREEN "%lld %i is eating\n" RESET, timestamp_ms() - start_time, philo->id);
+		printf(GREEN "%lld %i is eating\n" RESET, get_time_ms() - start_time, philo->id);
 	else if (type == SLEEPING)
-		printf(BLUE "%lld %i is sleeping\n" RESET, timestamp_ms() - start_time, philo->id);
+		printf(BLUE "%lld %i is sleeping\n" RESET, get_time_ms() - start_time, philo->id);
 	else if (type == THINKING)
-		printf(YELLOW "%lld %i is thinking\n" RESET, timestamp_ms() - start_time, philo->id);
-	pthread_mutex_unlock(&philo->table->mutex_table);
+		printf(YELLOW "%lld %i is thinking\n" RESET, get_time_ms() - start_time, philo->id);
+	pthread_mutex_unlock(&philo->table->write_lock);
 	return ;
-
 }
+
