@@ -20,18 +20,13 @@ long long get_time_ms(void)
 	return (tv.tv_sec * 1000 + (tv.tv_usec / 1000));
 }
 
-void	philo_sleep(int time_ms, t_table *table)
+void	philo_sleep(int time_ms)
 {
 	long long time;
 
 	time = get_time_ms();
-
 	while (get_time_ms() - time < time_ms)
-	{
-		if (!simulation_conditions(table))
-			break;
 		usleep(100);
-	}
 }
 
 void	clean_forks(pthread_mutex_t *forks, int n)

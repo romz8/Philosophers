@@ -51,7 +51,9 @@ int main(int argc, char **argv)
 	init_forks(forks, &table);
 	table.philos = init_philosophers(&table);
 	thread_dinner(table.philos, &table);
-	while (simulation_continue(&table));
+	simulation_thread(&table);
+	// while (simulation_continue(&table))
+	// 	usleep(50);
 	stop_simulation(&table);
 	//printf("the death count is %i\n", table.death_count);
 	//free(forks); - do a proper function carefull
@@ -139,6 +141,7 @@ void	thread_dinner(t_philo *philo, t_table *table)
 	int i;
 
 	i = 0;
+	table->start_time = get_time_ms() + table->total * 20;
 	while (i < table->total)
 	{
 		pthread_create(&philo[i].thread, NULL, philo_routine, &philo[i]);
@@ -155,8 +158,8 @@ int	simulation_continue(t_table *table)
 	long long death_time;
 	
 	i = 0;
-	while (get_time_ms() < table->start_time || !table->start_time)
-		usleep(100);
+// 	while (get_time_ms() < table->start_time || !table->start_time)
+// 		usleep(100);
 	while (i < table->total)
 	{
 		pthread_mutex_lock(&table->philos[i].philo_lock);
@@ -172,6 +175,25 @@ int	simulation_continue(t_table *table)
 	return (1);
 }
 
+void	*simulation_routine(void *input)
+{
+	t_table *table;
+
+	table = (t_table *) input;
+
+	while(1)
+	{
+		if (!simulation_continue(table))
+			return (NULL);
+		usleep(100);
+	}
+	return (NULL);
+}
+
+void	simulation_thread(t_table *table)
+{
+	pthread_create(&table->simul_thread, NULL, simulation_routine, (void *) table);
+}
 void	stop_simulation(t_table *table)
 {
 	int		i;
@@ -184,5 +206,6 @@ void	stop_simulation(t_table *table)
 		pthread_join(philos[i].thread, NULL);
 		i++;
 	}
+	pthread_join(table->simul_thread, NULL);
 	return ;
 }

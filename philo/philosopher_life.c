@@ -14,27 +14,7 @@
 
 void   philo_think(t_philo *philo)
 {
-	if (!simulation_conditions(philo->table))
-		return ;
 	message(philo, THINKING);
-}
-
-void	pickup_forks(t_philo *philo)
-{
-	if (philo->id % 2 == 0)
-	{
-		pthread_mutex_lock(philo->right_fork);
-		message(philo, FORK);
-		pthread_mutex_lock(philo->left_fork);
-		message(philo, FORK);
-	}
-	else 
-	{
-		pthread_mutex_lock(philo->left_fork);
-		message(philo, FORK);
-		pthread_mutex_lock(philo->right_fork);
-		message(philo, FORK);
-	}
 }
 
 /*
@@ -48,19 +28,20 @@ run eat + sleep consecutives routines
 */
 void	philo_eat_sleep(t_philo *philo)
 {
-	if (!simulation_conditions(philo->table))
-		return ;
-	pickup_forks(philo);
+	pthread_mutex_lock(philo->left_fork);
+	message(philo, FORK);
+	pthread_mutex_lock(philo->right_fork);
+	message(philo, FORK);
 	message(philo, EATING);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = get_time_ms() + philo->table->time_die;
 	pthread_mutex_unlock(&philo->philo_lock);
-	philo_sleep(philo->table->time_eat, philo->table);
+	philo_sleep(philo->table->time_eat);
 	philo->meal_count++;
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
 	message(philo, SLEEPING);
-	philo_sleep(philo->table->time_sleep, philo->table);
+	philo_sleep(philo->table->time_sleep);
 }
 
 /*
@@ -80,16 +61,15 @@ void	*philo_routine(void *input)
 	t_philo *philo;
 	long long	init_time;
 	
+
 	philo = (t_philo *) input;
-	while(1)
-	{
-		pthread_mutex_lock(&philo->table->time_lock);
-		init_time = philo->table->start_time;
-		pthread_mutex_unlock(&philo->table->time_lock);
-		if (init_time != 0)
-			break;
-		usleep(0);
-	}
+	if (philo->id % 2 == 0)
+		philo_sleep(philo->table->time_eat / 10);
+	pthread_mutex_lock(&philo->table->time_lock);
+	init_time = philo->table->start_time;
+	pthread_mutex_unlock(&philo->table->time_lock);
+	while (get_time_ms() < init_time)
+		philo_sleep(50);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = init_time + philo->table->time_die;
 	pthread_mutex_unlock(&philo->philo_lock);
@@ -99,23 +79,6 @@ void	*philo_routine(void *input)
 		philo_think(philo);
 	}
 	return (NULL);
-}
-
-int death_risk(t_philo *philo)
-{
-
-	pthread_mutex_lock(&philo->philo_lock);
-	if (get_time_ms() >= philo->death_time)
-	{
-		message(philo, DIED);
-		pthread_mutex_unlock(&philo->philo_lock);
-		return (1);
-	}
-	else
-	{
-		pthread_mutex_unlock(&philo->philo_lock);
-		return (0);
-	}
 }
 
 int	simulation_conditions(t_table *table)
@@ -129,59 +92,6 @@ int	simulation_conditions(t_table *table)
 		return (0);
 	return (1);
 }
-/*
-void	eating_permission(t_philo *philo)
-{
-	t_philo philo_left;
-	t_philo philo_right;
-	int		side_left;
-	int		side_right;
-
-	if (philo->id == 1)
-	{
-		side_left = philo->table->total;
-		side_right = philo->id + 1;
-	}
-	else if (philo->id == philo->table->total)
-	{	
-		side_left = philo->id - 1;
-		side_right = 1;
-	}
-	else
-	{
-		side_left = philo->id - 1;
-		side_right = philo->id - 1;
-	}
-	philo_left = philo->table->philos[side_left];
-	philo_right = philo->table->philos[side_right];
-	while (!(philo_left.is_eating == 0 && philo_right.is_eating == 0))
-		usleep(10);
-	return;
-} */
-
-
-
-/*void	*death_risk_thread(t_philo *philo)
-{
-
-	while (simulation_conditions(philo))
-	{
-		pthread_mutex_lock(&philo->philo_lock);
-		if (timestamp_ms() >= philo->death_time && philo->is_eating == 0)
-		{
-			message(philo, DIED);
-			pthread_mutex_unlock(&philo->philo_lock);
-			break;
-		}
-		else
-			pthread_mutex_unlock(&philo->philo_lock);
-	}
-	return (1);
-}
-*/
-
-
-
 /*
 void	end_simulation(t_table *table)
 {

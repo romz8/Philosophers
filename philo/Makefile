@@ -12,7 +12,7 @@
 
 
 CC = cc
-FLAGS = -Wall -Wextra -Werror -MMD -I/. -pthread -fsanitize=thread -g 
+FLAGS = --debug -Wall -Wextra -Werror -MMD -I/. -pthread #-fsanitize=thread -g 
 
 SRC = $(wildcard *.c)
 OBJS = $(SRC:.c=.o)
