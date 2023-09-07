@@ -42,8 +42,6 @@ void	clean_forks(pthread_mutex_t *forks, int n)
 	free(forks);
 }
 
-
-
 /*
 this function display what event philospher of id X did a what time
 1. catch the time of start of the simulation and lock the code with a mutex (to impede all philospohers
@@ -56,8 +54,10 @@ void	message(t_philo *philo, int type)
 {
 	long long start_time;
 
-	pthread_mutex_lock(&philo->table->write_lock);
+	pthread_mutex_lock(&philo->table->time_lock);
 	start_time = philo->table->start_time;
+	pthread_mutex_unlock(&philo->table->time_lock);
+	pthread_mutex_lock(&philo->table->write_lock);
 	
 	if (!simulation_conditions(philo->table))
 	{
@@ -83,3 +83,9 @@ void	message(t_philo *philo, int type)
 	return ;
 }
 
+void	reach_end_condition(t_table *table)
+{
+	pthread_mutex_lock(&table->death_lock);
+	table->is_over =1;
+	pthread_mutex_unlock(&table->death_lock);
+}

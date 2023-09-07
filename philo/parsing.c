@@ -12,13 +12,17 @@
 
 #include "philo.h"
 
-int	check_arguments(int argc, char **argv)
+/*
+This check that all arguments numbers and positive ones
+*/
+int	check_arguments(int argc, char **argv, int i, int j)
 {
-	int i;
-	int	j;
-
-	if (argc < 5)
+	if (argc < 4 || argc > 6)
+	{
+		printf("Wrong number of arguments. Usage is ./philo N_philosophers \
+		time_to_die time_to_eat time_to_sleep [max_nb_meal optional]\n");
 		return (1);
+	}
 	i = 0;
 	while (++i < argc - 1)
 	{

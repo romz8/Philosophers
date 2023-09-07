@@ -14,10 +14,10 @@
 #include "philo.h"
 
 /* 
-1. We initiate a table and philo data structre then check arguments are correct
+1. We declare a table and philo data structure then check arguments are correct
 2. we fill the table data from arguments, special case if user entered a 
 max nber of meal
-3. we init the mutex of the table (that will be use when a thread modify a table
+3. we init the mutex of the table object(that will be use when a thread modify a table
 data like deat_count and start time)
 4. we init the forks data struct (an array of N forks, all mutexes)
 5. we init philosopers (see below)
@@ -28,104 +28,15 @@ int main(int argc, char **argv)
 	t_table table;
 	pthread_mutex_t *forks;
 
-	if (check_arguments(argc, argv))
+	if (check_arguments(argc, argv, 0, 0))
 		return (1);
-	table.total = ft_atoi(argv[1]);
-	table.death_count = 0;
-	table.time_die = ft_atoi(argv[2]);
-	table.time_eat = ft_atoi(argv[3]);
-	table.time_sleep = ft_atoi(argv[4]);
-	if (argv[5])
-	{
-		table.is_bounded = 1;
-		table.meal_max= ft_atoi(argv[5]);
-	}
-	else
-		table.is_bounded = 0;
-	table.start_time = 0;
-	table.is_over = 0;
+	init_table(&table, argv);
 	forks = NULL;
-	pthread_mutex_init(&table.time_lock, NULL);
-	pthread_mutex_init(&table.death_lock, NULL);
-	pthread_mutex_init(&table.write_lock, NULL);
 	init_forks(forks, &table);
 	table.philos = init_philosophers(&table);
 	thread_dinner(table.philos, &table);
-	simulation_thread(&table);
-	// while (simulation_continue(&table))
-	// 	usleep(50);
-	stop_simulation(&table);
-	//printf("the death count is %i\n", table.death_count);
-	//free(forks); - do a proper function carefull
-	//pthread_mutex_destroy(&table.mutex_table);
-	//clean_forks(forks, table.total);
+	simulation_monitor(&table);
 	return (0);
-}
-
-/*
-MALLOC - THIS NEEDS TO BE FREED - CHECKED ?
-1. we allocate N memory space of size N as nbr forks = nbr phillo
-2. malloc protected
-3. we init all the mutexes in the mallocated mutex array
-4. we make the forks pointer in table DS point toward our array
-*/
-void	init_forks(pthread_mutex_t *forks, t_table *table)
-{
-	int i;
-	
-	forks = malloc(sizeof(pthread_mutex_t) * table->total);
-	if (!forks)
-	{	
-		free(table);
-		return ;
-	}
-	i = 0;
-	while (i < table->total)
-	{
-		pthread_mutex_init(&forks[i], NULL);
-		i++;
-	}
-	table->forks = forks;
-}
-
-/*
-we init our threads based on our nber of philosophers
-1. receive table DS and from there take the nber of philo input
-to allocated an array of philo struct - malloc protected and if 
-issue free the table object.
-2. fill the struct in the array for all philo : it's id, init nber of
-meals, if it has a cap, and fill in the forks and table data.
-3. the forks are filled as follwo : forks array goes from 0 to N -1 and 
-philo id go from 1 to N : philo 1 has fork[0] o his left and fork[1] on 
-his right, philo 2 has fork[1] and fork[2], ..., philo n has fork[n - 1] and
-fork [0]. so we fill the philo of id [i + 1] with left_mutex pointer has fork[i]
-and the left fork[i + 1] and make it modulo nber of philo so that philo [n] left
-fork is [n % n] = 0.
-4. we return the philo array
-*/
-t_philo	*init_philosophers(t_table *table)
-{
-	int		i;
-	t_philo	*philo;
-
-	philo = malloc(sizeof(t_philo) * table->total);
-	if (!philo)
-	{
-		//clean_forks(table->forks, table->total);
-		free(table);
-		return (NULL);
-	}
-	i = -1;	
-	while (++i < table->total)
-	{
-		philo[i].id = i + 1;
-		philo[i].meal_count = 0; 
-		philo[i].left_fork = &table->forks[i];
-		philo[i].right_fork = &table->forks[(i + 1) % table->total];
-		philo[i].table = table;
-		pthread_mutex_init(&philo[i].philo_lock, NULL);
-	}
-	return (philo);
 }
 
 /*
@@ -141,17 +52,24 @@ void	thread_dinner(t_philo *philo, t_table *table)
 	int i;
 
 	i = 0;
-	table->start_time = get_time_ms() + table->total * 20;
+	table->start_time = get_time_ms();
 	while (i < table->total)
 	{
 		pthread_create(&philo[i].thread, NULL, philo_routine, &philo[i]);
 		i++;
 	}
-	pthread_mutex_lock(&philo->table->time_lock);
-	table->start_time = get_time_ms(); //to make sure time doesn't start while everybody is seated
-	pthread_mutex_unlock(&philo->table->time_lock);
+	pthread_mutex_lock(&table->time_lock);
+	table->start_time = get_time_ms();
+	pthread_mutex_unlock(&table->time_lock);
 }
 
+/*
+check that the simulation should continue based on conditions (philos are alive)
+or reached maximum number of meals - return 0 if should stop, otherwise 1
+1. traverse the array of philo objects
+2. lock the object and extract the expected death_time
+3. if we overpass it -> kill the philosopher (or declare it dead, as you wish) 
+*/
 int	simulation_continue(t_table *table)
 {
 	int	i;
@@ -175,12 +93,18 @@ int	simulation_continue(t_table *table)
 	return (1);
 }
 
+/*
+The routine associated to the simulation monitor: always return NULL.
+1. take void pointer as input, convert it back to t_philo type
+2. constantly run a check if the simulation should stop or not - usleep
+to avoid too much pressure on CPU - and exit as soon as simulation 
+shoud stop
+*/
 void	*simulation_routine(void *input)
 {
 	t_table *table;
 
 	table = (t_table *) input;
-
 	while(1)
 	{
 		if (!simulation_continue(table))
@@ -190,22 +114,23 @@ void	*simulation_routine(void *input)
 	return (NULL);
 }
 
-void	simulation_thread(t_table *table)
-{
-	pthread_create(&table->simul_thread, NULL, simulation_routine, (void *) table);
-}
-void	stop_simulation(t_table *table)
+/*
+monitoring if the simuluation should stop and close all the thread
+accordingly if so
+*/
+void	simulation_monitor(t_table *table)
 {
 	int		i;
 	t_philo *philos;
 
 	philos = table->philos;
 	i = 0;
+	pthread_create(&table->simul_thread, NULL, simulation_routine, (void *) table);
+	pthread_join(table->simul_thread, NULL);
 	while (i < table->total)
 	{
 		pthread_join(philos[i].thread, NULL);
 		i++;
 	}
-	pthread_join(table->simul_thread, NULL);
 	return ;
 }

@@ -6,13 +6,13 @@
 #    By: rjobert <rjobert@student.42barcelo>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/08/31 20:47:02 by rjobert           #+#    #+#              #
-#    Updated: 2023/08/31 20:47:05 by rjobert          ###   ########.fr        #
+#    Updated: 2023/09/07 21:33:14 by rjobert          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
 CC = cc
-FLAGS = --debug -Wall -Wextra -Werror -MMD -I/. -pthread #-fsanitize=thread -g 
+FLAGS = -Wall -Wextra -Werror -MMD -I/. #-pthread -fsanitize=thread -g 
 
 SRC = $(wildcard *.c)
 OBJS = $(SRC:.c=.o)

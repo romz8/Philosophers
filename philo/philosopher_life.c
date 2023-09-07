@@ -35,9 +35,9 @@ void	philo_eat_sleep(t_philo *philo)
 	message(philo, EATING);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = get_time_ms() + philo->table->time_die;
+	philo->meal_count++;
 	pthread_mutex_unlock(&philo->philo_lock);
 	philo_sleep(philo->table->time_eat);
-	philo->meal_count++;
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
 	message(philo, SLEEPING);
@@ -72,15 +72,29 @@ void	*philo_routine(void *input)
 		philo_sleep(50);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = init_time + philo->table->time_die;
+	if (philo->meal_count == philo->table->meal_max)
+		philo->is_finished = 1;
 	pthread_mutex_unlock(&philo->philo_lock);
-	while (simulation_conditions(philo->table) == 1)  //!death_risk(philo) //simulation_conditions(philo->table)
+	while (simulation_conditions(philo->table))
 	{
 		philo_eat_sleep(philo);
-		philo_think(philo);
+		message(philo, THINKING);
+		// if (philo->meal_count == philo->table->meal_max)
+		// {
+		// 	message(philo, FINISHED);
+		// 	break;
+		// }
 	}
 	return (NULL);
 }
 
+/*
+- take the table object as input and return 1 if simulation condition indicates
+the end, else return 1
+- objective : used in the simulation thead to check on if philosophers or have eaten enough
+- get the flag(is_over) in the simulation table object with "flash access" mutex and then
+store : to local variable - act like a quick transitor with fast mutex_protection
+*/
 int	simulation_conditions(t_table *table)
 {
 	int over;
