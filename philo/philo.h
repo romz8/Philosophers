@@ -19,7 +19,7 @@
 # define RED "\x1B[31m"
 # define GREEN "\x1B[32m"
 # define RESET "\x1B[0m"
-# define BLACK "\033[0;30m"
+# define PINK "\x1B[95m"
 
 # define DIED 0
 # define EATING 1
@@ -83,6 +83,7 @@ void	philo_sleep(int time_ms);
 void	philo_eat_sleep(t_philo *philo);
 
 void	*philo_routine(void *data);
+void	*philone_routine(void *input);
 void	thread_dinner(t_philo *philo, t_table *table);
 int		simulation_conditions(t_table *table);
 int		simulation_continue(t_table *table);

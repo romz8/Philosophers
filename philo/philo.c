@@ -53,10 +53,15 @@ void	thread_dinner(t_philo *philo, t_table *table)
 
 	i = 0;
 	table->start_time = get_time_ms();
-	while (i < table->total)
+	if (table->total == 1)
+		pthread_create(&philo[i].thread, NULL, philone_routine, &philo[i]);
+	else
 	{
-		pthread_create(&philo[i].thread, NULL, philo_routine, &philo[i]);
-		i++;
+		while (i < table->total)
+		{
+			pthread_create(&philo[i].thread, NULL, philo_routine, &philo[i]);
+			i++;
+		}
 	}
 	pthread_mutex_lock(&table->time_lock);
 	table->start_time = get_time_ms();

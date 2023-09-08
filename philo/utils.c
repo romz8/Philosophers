@@ -68,7 +68,7 @@ void	message(t_philo *philo, int type)
 		reach_end_condition(philo->table);
 	}
 	else if (type == FINISHED)
-		printf(BLACK "%lld %i FINISHED\n", get_time_ms() - start_time, philo->id);
+		printf(PINK "%lld %i FINISHED\n", get_time_ms() - start_time, philo->id);
 	else if (type == FORK)
 		printf("%lld %i has taken a fork\n", get_time_ms() - start_time, philo->id);
 	else if (type == EATING)

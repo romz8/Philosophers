@@ -106,6 +106,30 @@ int	simulation_conditions(t_table *table)
 		return (0);
 	return (1);
 }
+
+void	*philone_routine(void *input)
+{
+	t_philo *philo;
+	long long	init_time;
+	
+	philo = (t_philo *) input;
+	init_time = get_simul_start(philo->table);
+	pthread_mutex_lock(&philo->philo_lock);
+	philo->death_time = init_time + philo->table->time_die;
+	pthread_mutex_unlock(&philo->philo_lock);
+	while (simulation_conditions(philo->table))
+	{
+		pthread_mutex_lock(philo->left_fork);
+		message(philo, FORK);
+		pthread_mutex_lock(&philo->philo_lock);
+		philo_sleep(philo->table->time_die);
+		pthread_mutex_unlock(&philo->philo_lock);
+		pthread_mutex_unlock(philo->left_fork);
+		message(philo, DIED);
+	}
+	return (NULL);
+}
+
 /*
 void	end_simulation(t_table *table)
 {
