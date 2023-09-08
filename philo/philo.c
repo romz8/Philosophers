@@ -67,25 +67,37 @@ void	thread_dinner(t_philo *philo, t_table *table)
 check that the simulation should continue based on conditions (philos are alive)
 or reached maximum number of meals - return 0 if should stop, otherwise 1
 1. traverse the array of philo objects
-2. lock the object and extract the expected death_time
-3. if we overpass it -> kill the philosopher (or declare it dead, as you wish) 
+2. lock the object and extract the expected death_time and if philo finished
+3. if current time overpass deat_time and he/she is not eathing or he/she is
+not finished -> kill the philosopher (or declare it dead, as you wish) 
+4. if the total of people who finished eating is the number of philos, stop
+the simulation
 */
 int	simulation_continue(t_table *table)
 {
 	int	i;
 	long long death_time;
+	int 	total_finished;
+	int 	is_finished; 
 	
 	i = 0;
-// 	while (get_time_ms() < table->start_time || !table->start_time)
-// 		usleep(100);
+	total_finished = 0;
 	while (i < table->total)
 	{
+		
 		pthread_mutex_lock(&table->philos[i].philo_lock);
 		death_time = table->philos[i].death_time;
+		is_finished = table->philos[i].is_finished;
 		pthread_mutex_unlock(&table->philos[i].philo_lock);
-		if (get_time_ms() >= death_time && death_time)
+		if (get_time_ms() >= death_time && death_time && !table->philos[i].is_eating && !is_finished)
 		{
 			message(&table->philos[i], DIED);
+			return (0);
+		}
+		total_finished += is_finished;
+		if (total_finished == table->total)
+		{
+			reach_end_condition(table);
 			return (0);
 		}
 		i++;

@@ -20,11 +20,12 @@ void   philo_think(t_philo *philo)
 /*
 Take the philo instance as an input, return nothing and  
 run eat + sleep consecutives routines
-1. if the simualtion condition are not to continue, leave and do nothing
-2. use the pickup_forks() function to avoid data race and deadlock
+1. use lock forsk mutex in left-right order to avoid data race
+2. mutex the philosopher object to prevent eating / dying at same time
 3. update philosopher xext death_time as per time_die in the table object
-4. put down forks (release the mutex)
-5. put philo to sleep as per sleep-time in table object and with ms adjsutment
+4. unlock philo mutex
+5. put down forks (release the mutex) in the same order to avoid deadlock
+6. put philo to sleep as per sleep-time in table object and with ms adjsutment
 */
 void	philo_eat_sleep(t_philo *philo)
 {
@@ -32,12 +33,14 @@ void	philo_eat_sleep(t_philo *philo)
 	message(philo, FORK);
 	pthread_mutex_lock(philo->right_fork);
 	message(philo, FORK);
-	message(philo, EATING);
 	pthread_mutex_lock(&philo->philo_lock);
+	message(philo, EATING);
+	philo->is_eating = 1;
 	philo->death_time = get_time_ms() + philo->table->time_die;
 	philo->meal_count++;
-	pthread_mutex_unlock(&philo->philo_lock);
 	philo_sleep(philo->table->time_eat);
+	philo->is_eating = 0;
+	pthread_mutex_unlock(&philo->philo_lock);
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
 	message(philo, SLEEPING);
@@ -49,9 +52,8 @@ take a void pointer as input (as per pthread_create) that is converted
 back to t_philo pnters. return a void pointer (as per pthread_create) and
 run philo_routine as long as no death.
 1. convert void * to t_philo * 
-2. do not start as long as the time as been init is null : use sleep (in the 
-main thread, once all threads are created then time is setup so we can  
-start the simulation when all philosophers are seated)
+2. create randomness to avoid deadlock (all philo reach their left fork at 
+the same time and wait each other) - so if even philo_id -> start sligthly later
 3. init the first time to die for a philo as he haven't eaten yet
 4. while the simulation condition are correct, the philosopher executes his
 eat / sleep / think rountines
@@ -61,29 +63,27 @@ void	*philo_routine(void *input)
 	t_philo *philo;
 	long long	init_time;
 	
-
 	philo = (t_philo *) input;
 	if (philo->id % 2 == 0)
 		philo_sleep(philo->table->time_eat / 10);
-	pthread_mutex_lock(&philo->table->time_lock);
-	init_time = philo->table->start_time;
-	pthread_mutex_unlock(&philo->table->time_lock);
+	init_time = get_simul_start(philo->table);
 	while (get_time_ms() < init_time)
 		philo_sleep(50);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = init_time + philo->table->time_die;
-	if (philo->meal_count == philo->table->meal_max)
-		philo->is_finished = 1;
 	pthread_mutex_unlock(&philo->philo_lock);
 	while (simulation_conditions(philo->table))
 	{
 		philo_eat_sleep(philo);
 		message(philo, THINKING);
-		// if (philo->meal_count == philo->table->meal_max)
-		// {
-		// 	message(philo, FINISHED);
-		// 	break;
-		// }
+		if (philo->meal_count == philo->table->meal_max && philo->table->is_bounded == 1)
+		{
+			message(philo, FINISHED);
+			pthread_mutex_lock(&philo->philo_lock);
+			philo->is_finished = 1;
+			pthread_mutex_unlock(&philo->philo_lock);
+			break;
+		}
 	}
 	return (NULL);
 }

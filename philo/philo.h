@@ -58,6 +58,7 @@ typedef struct s_philo
 	int				id;
 	int				meal_count;
 	int				is_finished;
+	int				is_eating;
 	long long		death_time;
 	pthread_t		thread;
 	pthread_mutex_t	*left_fork;
@@ -91,6 +92,7 @@ void	reach_end_condition(t_table *table);
 
 void	message(t_philo *philo, int type);
 long long get_time_ms(void);
+long long get_simul_start(t_table *table);
 
 
 #endif
