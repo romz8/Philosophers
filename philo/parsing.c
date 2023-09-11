@@ -31,8 +31,8 @@ int	check_arguments(int argc, char **argv, int i, int j)
 		{
 			if (!ft_isdigit(argv[i][j]))
 			{
-			printf("Argument %i wrong - contain letter\n", i);
-			return (1);
+				printf("Argument %i wrong - negative or contain letter\n", i);
+				return (1);
 			}
 		}
 		if (ft_atoi(argv[i]) <= 0)

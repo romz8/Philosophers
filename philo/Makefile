@@ -14,7 +14,7 @@
 CC = cc
 FLAGS = -Wall -Wextra -Werror -MMD -I/. #-pthread -fsanitize=thread -g 
 
-SRC = $(wildcard *.c)
+SRC =  philo.c utils.c simulation.c philosopher_life.c parsing.c init.c exit.c
 OBJS = $(SRC:.c=.o)
 DEPS = $(SRC:.c=.d)
 NAME = philo
@@ -33,7 +33,7 @@ clean:
 	rm -rf $(OBJS)
 
 fclean: clean
-	rm $(NAME) $(DEPS)
+	rm -f $(NAME) $(DEPS)
 
 re: fclean all
 

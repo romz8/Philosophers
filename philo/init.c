@@ -19,23 +19,26 @@ MALLOC - THIS NEEDS TO BE FREED - CHECKED ?
 3. we init all the mutexes in the mallocated mutex array
 4. we make the forks pointer in table DS point toward our array
 */
-void	init_forks(pthread_mutex_t *forks, t_table *table)
+int	init_forks(pthread_mutex_t *forks, t_table *table)
 {
-	int i;
-	
+	int	i;
+
 	forks = malloc(sizeof(pthread_mutex_t) * table->total);
 	if (!forks)
-	{	
-		free(table);
-		return ;
+	{
+		clean_mutex(table);
+		free_memory(table);
+		return (1);
 	}
 	i = 0;
 	while (i < table->total)
 	{
-		pthread_mutex_init(&forks[i], NULL);
+		if (pthread_mutex_init(&forks[i], NULL))
+			return (1);
 		i++;
 	}
 	table->forks = forks;
+	return (0);
 }
 
 /*
@@ -61,11 +64,11 @@ t_philo	*init_philosophers(t_table *table)
 	philo = malloc(sizeof(t_philo) * table->total);
 	if (!philo)
 	{
-		//clean_forks(table->forks, table->total);
-		free(table);
+		clean_mutex(table);
+		free_memory(table);
 		return (NULL);
 	}
-	i = -1;	
+	i = -1;
 	while (++i < table->total)
 	{
 		philo[i].id = i + 1;
@@ -74,12 +77,13 @@ t_philo	*init_philosophers(t_table *table)
 		philo[i].left_fork = &table->forks[i];
 		philo[i].right_fork = &table->forks[(i + 1) % table->total];
 		philo[i].table = table;
-		pthread_mutex_init(&philo[i].philo_lock, NULL);
+		if (pthread_mutex_init(&philo[i].philo_lock, NULL))
+			return (NULL);
 	}
 	return (philo);
 }
 
-void init_table(t_table *table, char **argv)
+int	init_table(t_table *table, char **argv)
 {
 	table->total = ft_atoi(argv[1]);
 	table->death_count = 0;
@@ -89,13 +93,17 @@ void init_table(t_table *table, char **argv)
 	if (argv[5])
 	{
 		table->is_bounded = 1;
-		table->meal_max= ft_atoi(argv[5]);
+		table->meal_max = ft_atoi(argv[5]);
 	}
 	else
 		table->is_bounded = 0;
 	table->start_time = 0;
 	table->is_over = 0;
-	pthread_mutex_init(&table->time_lock, NULL);
-	pthread_mutex_init(&table->death_lock, NULL);
-	pthread_mutex_init(&table->write_lock, NULL);
+	if (pthread_mutex_init(&table->time_lock, NULL))
+		return (1);
+	if (pthread_mutex_init(&table->death_lock, NULL))
+		return (1);
+	if (pthread_mutex_init(&table->write_lock, NULL))
+		return (1);
+	return (0);
 }
