@@ -13,7 +13,6 @@
 #include "philo.h"
 
 /*
-MALLOC - THIS NEEDS TO BE FREED - CHECKED ?
 1. we allocate N memory space of size N as nbr forks = nbr phillo
 2. malloc protected
 3. we init all the mutexes in the mallocated mutex array

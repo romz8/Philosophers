@@ -40,9 +40,6 @@ int	start_simulation(t_philo *philo, t_table *table)
 			i++;
 		}
 	}
-	pthread_mutex_lock(&table->time_lock);
-	table->start_time = get_time_ms();
-	pthread_mutex_unlock(&table->time_lock);
 	return (0);
 }
 

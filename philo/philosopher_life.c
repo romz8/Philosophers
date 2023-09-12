@@ -64,8 +64,6 @@ void	*philo_routine(void *input)
 	if (philo->id % 2 == 0)
 		philo_sleep(philo->table->time_eat / 10);
 	init_time = get_simul_start(philo->table);
-	while (get_time_ms() < init_time)
-		philo_sleep(50);
 	pthread_mutex_lock(&philo->philo_lock);
 	philo->death_time = init_time + philo->table->time_die;
 	pthread_mutex_unlock(&philo->philo_lock);
