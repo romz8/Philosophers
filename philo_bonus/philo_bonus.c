@@ -36,11 +36,10 @@ int	main(int argc, char **argv)
 		ft_exit(&table, EXIT_FAILURE);
 	start_simulation(&table);
 	simulation_monitor(&table);
-	sem_wait(table.sem_stop);	
+	sem_wait(table.sem_stop);
 	clear_programme(&table);
 	exit(EXIT_SUCCESS);
 }
-
 
 int	init_table(t_table *table, char **argv)
 {
@@ -68,7 +67,7 @@ int	init_table(t_table *table, char **argv)
 	return (0);
 }
 
-char  **process_sem(t_table *table)
+char	**process_sem(t_table *table)
 {
 	char	**names;
 	int		i;
@@ -84,6 +83,7 @@ char  **process_sem(t_table *table)
 	}
 	return (names);
 }
+
 /*
 we init our threads based on our nber of philosophers
 1. receive table DS and from there take the nber of philo input

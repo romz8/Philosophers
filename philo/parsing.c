@@ -17,7 +17,7 @@ This check that all arguments numbers and positive ones
 */
 int	check_arguments(int argc, char **argv, int i, int j)
 {
-	if (argc < 4 || argc > 6)
+	if (argc <= 4 || argc > 6)
 	{
 		printf("Wrong number of arguments. \n Usage is ./philo N_philosophers \
 		time_to_die time_to_eat time_to_sleep [max_nb_meal optional]\n");

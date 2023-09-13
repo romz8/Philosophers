@@ -40,6 +40,7 @@ void	start_simulation(t_table *table)
 	}
 	return ;
 }
+
 /*
 monitoring if the simuluation should stop based on case
 1. we run a loop and use waitpid with -1 (wait for any child process
@@ -53,41 +54,42 @@ of philo who finished and continue un reach total of philo
 */
 void	simulation_monitor(t_table *table)
 {
-	int 	status;
+	int		status;
 	int		total_finished;
 	pid_t	pid;
 
 	total_finished = 0;
-	while(1)
+	while (1)
 	{
 		pid = waitpid(-1, &status, 0);
 		if (WIFEXITED(status) && WEXITSTATUS(status) == DEATH_CODE)
 		{
 			sem_post(table->sem_stop);
 			terminate_processes(table);
-			break;
+			break ;
 		}
 		else if (WIFEXITED(status) && WEXITSTATUS(status) == MEAL_CODE)
 			total_finished++;
 		if (total_finished == table->total)
 		{
 			sem_post(table->sem_stop);
-			break;
+			break ;
 		}
 		usleep(100);
 	}
 }
+
 /*
 Terminate all child processes to avoid any orphan process
 */
-void terminate_processes(t_table *table)
+void	terminate_processes(t_table *table)
 {
 	int	i;
 
 	i = 0;
 	while (i < table->total)
 	{
-		if(kill(table->philo_pids[i], SIGTERM) == -1)
+		if (kill(table->philo_pids[i], SIGTERM) == -1)
 			ft_exit(table, EXIT_FAILURE);
 		i++;
 	}

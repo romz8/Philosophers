@@ -13,7 +13,7 @@
 #include "philo_bonus.h"
 /*
 we need to open a unique semaphore for our philosopher based on his/her id
-1. convert his id from integer to char *s
+1. convert the id from integer to char *s (ft_itoa and its helper functions)
 2. concatenate "sem_philo_" with this "id" and then safely init the semaphore
 */
 
@@ -74,21 +74,11 @@ char	*ft_itoa(int n)
 	return (nbr);
 }
 
-int	ft_strlen(char const *s)
-{
-	int	i;
-	i = 0;
-
-	while (s[i])
-		i++;
-	return (i);
-}
-
 char	*ft_strjoin_modif(char const *s1, char const *s2)
 {
 	size_t	s1_len;
 	size_t	s2_len;
-	size_t i;
+	size_t	i;
 	size_t	n;
 	char	*concat;
 
@@ -112,8 +102,8 @@ char	*ft_strjoin_modif(char const *s1, char const *s2)
 
 char	*custom_sem_philo(int id)
 {
-	char *sem_name;
-	char *philo_char_id;
+	char	*sem_name;
+	char	*philo_char_id;
 
 	philo_char_id = ft_itoa(id);
 	sem_name = ft_strjoin_modif("/sem_philo_", philo_char_id);

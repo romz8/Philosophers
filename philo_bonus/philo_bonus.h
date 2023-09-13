@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PHILO_H
-# define PHILO_H
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 
 # define BLUE "\x1B[34m"
 # define YELLOW "\x1B[33m"
@@ -70,29 +70,35 @@ typedef struct s_philo
 	t_table			*table;
 }	t_philo;
 
+/* Functions for Parsing and input check*/
 int			ft_atoi(const char *s);
 int			ft_isdigit(int c);
 int			check_arguments(int argc, char **argv, int i, int j);
 
+/* Functions to init Data Strcutures*/
 int			init_table(t_table *table, char **argv);
 int			init_philosophers(t_table *table);
-char  		**process_sem(t_table *table);
+char		**process_sem(t_table *table);
+char		*custom_sem_philo(int id);
 
+/* Function for process used to encode a philosopher life cycle*/
 void		philo_lifecycle(t_philo *philo);
 void		philo_sleep(int time_ms);
 void		philo_process(t_philo *philo);
 void		*life_thread(void *input);
-char		*custom_sem_philo(int id);
 
+/*Functions used to launch / montior / stop the simulation*/
 void		start_simulation(t_table *table);
 void		simulation_monitor(t_table *table);
 int			simulation_stop(t_philo *philo);
-void terminate_processes(t_table *table);
+void		terminate_processes(t_table *table);
 
+/* utils : write to std_out, get_time, exit and clean memory*/
 void		message(t_philo *philo, int type);
 long long	get_time_ms(void);
 int			ft_exit(t_table *table, int exit_code);
-sem_t 		*safe_sem_init(char *sem_name, int value);
+int			ft_strlen(const char *s);
+sem_t		*safe_sem_init(char *sem_name, int value);
 int			clear_programme(t_table *table);
 
 #endif

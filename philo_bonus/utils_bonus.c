@@ -51,7 +51,7 @@ void	message(t_philo *philo, int type)
 	if (type == DIED)
 	{
 		printf(RED "%lld %i died\n" RESET, timing, philo->id);
-		return;
+		return ;
 	}
 	else if (type == FINISHED)
 		printf(PINK "%lld %i FINISHED\n" RESET, timing, philo->id);
@@ -76,25 +76,20 @@ int	ft_exit(t_table *table, int exit_code)
 	exit(exit_code);
 }
 
-sem_t *safe_sem_init(char *sem_name, int value)
-{
-	sem_unlink(sem_name);
-	return (sem_open(sem_name, O_CREAT | O_EXCL, 0666, value));
-}
-
 int	clear_programme(t_table *table)
 {
-	// int	i;
-	// i = 0;
-	// while (i < table->total)
-	// {
-	// 	if (table->sem_names)
-	// 	{
-	// 		if (table->sem_names[i])
-	// 			free(table->sem_names[i]);
-	// 	}
-	// 	i++;
-	// }
+	int	i;
+
+	i = 0;
+	while (i < table->total)
+	{
+		if (table->sem_names)
+		{
+			if (table->sem_names[i])
+				free(table->sem_names[i]);
+		}
+		i++;
+	}
 	sem_close(table->sem_write);
 	sem_close(table->sem_stop);
 	sem_close(table->sem_forks);
