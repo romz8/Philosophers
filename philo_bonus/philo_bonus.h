@@ -25,10 +25,11 @@
 # define FORK 3
 # define SLEEPING 4
 # define FINISHED 5
+# define DEATH_CODE 43
+# define MEAL_CODE 42
 # define SEM_FORKS "/sem_forks"
 # define SEM_WRITE "/sem_write"
-# define SEM_MEAL "/sem_meal"
-# define SEM_DEATH "/sem_death"
+# define SEM_STOP "/sem_stop"
 # define SEM_LOCK "/sem_lock"
 
 # include <stdio.h>
@@ -52,8 +53,7 @@ typedef struct s_table
 	struct s_philo	*philos;
 	sem_t			*sem_forks;
 	sem_t			*sem_write;
-	sem_t			*sem_meals;
-	sem_t			*sem_death;
+	sem_t			*sem_stop;
 	pid_t			*philo_pids;
 }	t_table;
 
@@ -65,6 +65,7 @@ typedef struct s_philo
 	int				is_dead;
 	long long		death_time;
 	pthread_t		thread;
+	char			*sem_name;
 	sem_t			*lock;
 	t_table			*table;
 }	t_philo;
@@ -80,12 +81,12 @@ void		philo_lifecycle(t_philo *philo);
 void		philo_sleep(int time_ms);
 void		philo_process(t_philo *philo);
 void		*life_thread(void *input);
+char		*custom_sem_philo(int id);
 
 void		start_simulation(t_table *table);
-void		*meal_check(void *input);
 void		simulation_monitor(t_table *table);
 int			simulation_stop(t_philo *philo);
-void		terminate_processes(t_table *table);
+void terminate_processes(t_table *table);
 
 void		message(t_philo *philo, int type);
 long long	get_time_ms(void);

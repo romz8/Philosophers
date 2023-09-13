@@ -23,26 +23,20 @@ void	start_simulation(t_table *table)
 {
 	int		i;
 	pid_t	pid;
-	int		status;
 
-	i = 0;
 	table->start_time = get_time_ms();
+	i = 0;
 	while (i < table->total)
 	{
 		pid = fork();
 		if (pid == -1)
 			ft_exit(table, EXIT_FAILURE);
 		if (pid == 0)
-		{
-			table->philos[i].lock = safe_sem_init(SEM_LOCK, 1);
 			philo_process(&table->philos[i]);
-		}
 		else
 			table->philo_pids[i] = pid;
 		i++;
 	}
-	waitpid(-1, &status, 0);
-	// IF RECEIVEE SIIGNAL TO END -> KILL ALL PROCESS
 	return ;
 }
 /*
@@ -51,35 +45,32 @@ accordingly if so
 */
 void	simulation_monitor(t_table *table)
 {
-	pthread_t	monitor;
-	
-	pthread_create(&monitor, NULL, meal_check, (void *) table);
-	pthread_detach(monitor);
-	terminate_processes(table);
-	return ;
-}
-
-void	*meal_check(void *input)
-{
-	t_table *table;
+	int 	status;
 	int		total_finished;
-	int		i;
+	pid_t	pid;
 
-	table = (t_table *) input;
 	total_finished = 0;
-	while (total_finished < table->total)
+	while(1)
 	{
-		i = 0;
-		while (i < table->total)
+		pid = waitpid(-1, &status, 0);
+		if (WIFEXITED(status))
 		{
-			if (sem_wait(table->sem_meals))
-				i++;
-			usleep(50);
+			if(WEXITSTATUS(status) == DEATH_CODE)
+			{
+				sem_post(table->sem_stop);
+				terminate_processes(table);
+				break;
+			}
+			else if (WEXITSTATUS(status) == MEAL_CODE)
+				total_finished++;
+			if (total_finished == table->total)
+			{
+				sem_post(table->sem_stop);
+				break;
+			}
 		}
-		total_finished += 1;
+		usleep(100);
 	}
-	sem_wait(table->sem_write);
-	return (NULL);
 }
 
 void terminate_processes(t_table *table)
@@ -89,8 +80,10 @@ void terminate_processes(t_table *table)
 	i = 0;
 	while (i < table->total)
 	{
+		free(table->philos[i].sem_name);
 		if(kill(table->philo_pids[i], SIGTERM) == -1)
 			ft_exit(table, EXIT_FAILURE);
 		i++;
 	}
+	printf("killed all processed");
 }

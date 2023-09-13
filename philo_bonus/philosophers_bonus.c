@@ -24,6 +24,7 @@ run eat + sleep consecutives routines
 */
 void	philo_lifecycle(t_philo *philo)
 {
+	//printf("test LIFECYCLE process %i philo%i\n", getpid(), philo->id);
 	sem_wait(philo->table->sem_forks);
 	message(philo, FORK);
 	sem_wait(philo->table->sem_forks);
@@ -55,11 +56,12 @@ eat / sleep / think rountines
 */
 void	philo_process(t_philo *philo)
 {
-	long long	death_time;
 
+	while (get_time_ms() < philo->table->start_time)
+		philo_sleep(50);
 	if (philo->id % 2 == 0)
 		philo_sleep(philo->table->time_eat / 10);
-	death_time = philo->table->start_time + philo->table->time_die;
+	philo->death_time = philo->table->start_time + philo->table->time_die;
 	pthread_create(&philo->thread, NULL, life_thread, (void *) philo);
 	pthread_detach(philo->thread);
 	while (!simulation_stop(philo))
@@ -68,11 +70,12 @@ void	philo_process(t_philo *philo)
 		if (philo->meal_count == philo->table->meal_max && philo->table->is_bounded == 1)
 		{
 			message(philo, FINISHED);
-			sem_post(philo->table->sem_meals);
-			exit(EXIT_SUCCESS);
+			sem_close(philo->lock);
+			sem_unlink(SEM_LOCK);
+			exit(MEAL_CODE);
 		}
 	}
-	exit(0) ;
+	exit(DEATH_CODE);
 }
 
 int	simulation_stop(t_philo *philo)
@@ -95,11 +98,12 @@ void	*life_thread(void *input)
 		sem_wait(philo->lock);
 		if(get_time_ms() >= philo->death_time && !philo->is_eating)
 		{
-			philo->is_dead = 1;
 			message(philo, DIED);
-			sem_wait(philo->table->sem_write);
-			sem_wait(philo->table->sem_death);
-			exit(EXIT_SUCCESS);
+			philo->is_dead = 1;
+			// sem_close(philo->lock);
+			// sem_unlink(philo->sem_name);
+			//printf("philo %i pid %i ABOUT TO EXIT ", philo->id, getpid());
+			exit(DEATH_CODE);
 		}
 		sem_post(philo->lock);
 		usleep(100);

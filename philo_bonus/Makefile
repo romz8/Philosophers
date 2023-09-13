@@ -12,9 +12,9 @@
 
 
 CC = cc
-FLAGS = -Wall -Wextra -Werror -MMD -I/. -pthread -fsanitize=thread -g
+FLAGS = -Wall -Wextra -Werror -MMD -I/. #-pthread -fsanitize=thread -g
 
-SRC =  philo_bonus.c utils_bonus.c simulation_bonus.c philosophers_bonus.c parsing_bonus.c
+SRC =  philo_bonus.c utils_bonus.c simulation_bonus.c philosophers_bonus.c parsing_bonus.c sem_philo.c
 
 OBJS = $(SRC:.c=.o)
 DEPS = $(SRC:.c=.d)

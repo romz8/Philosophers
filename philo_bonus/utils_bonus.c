@@ -45,7 +45,10 @@ void	message(t_philo *philo, int type)
 	timing = get_time_ms() - philo->table->start_time;
 	sem_wait(philo->table->sem_write);
 	if (type == DIED)
+	{
 		printf(RED "%lld %i died\n" RESET, timing, philo->id);
+		return;
+	}
 	else if (type == FINISHED)
 		printf(PINK "%lld %i FINISHED\n" RESET, timing, philo->id);
 	else if (type == FORK)
@@ -66,9 +69,8 @@ int	ft_exit(t_table *table, int exit_code)
 		free(table->philo_pids);
 	if (table->philos)
 		free(table->philos);
-	sem_close(table->sem_death);
+	sem_close(table->sem_stop);
 	sem_close(table->sem_write);
-	sem_close(table->sem_meals);
 	exit(exit_code);
 }
 
@@ -80,13 +82,11 @@ sem_t *safe_sem_init(char *sem_name, int value)
 
 int clear_programme(t_table *table)
 {
-	sem_close(table->sem_death);
 	sem_close(table->sem_write);
-	sem_close(table->sem_meals);
+	sem_close(table->sem_stop);
 	sem_close(table->sem_forks);
-	sem_unlink(SEM_DEATH);
+	sem_unlink(SEM_STOP);
 	sem_unlink(SEM_WRITE);
-	sem_unlink(SEM_MEAL);
 	sem_unlink(SEM_FORKS);
 	return(ft_exit(table, EXIT_SUCCESS));
 }
