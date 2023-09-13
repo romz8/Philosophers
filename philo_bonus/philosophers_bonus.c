@@ -100,9 +100,6 @@ void	*life_thread(void *input)
 		{
 			message(philo, DIED);
 			philo->is_dead = 1;
-			// sem_close(philo->lock);
-			// sem_unlink(philo->sem_name);
-			//printf("philo %i pid %i ABOUT TO EXIT ", philo->id, getpid());
 			exit(DEATH_CODE);
 		}
 		sem_post(philo->lock);

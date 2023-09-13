@@ -117,5 +117,6 @@ char	*custom_sem_philo(int id)
 
 	philo_char_id = ft_itoa(id);
 	sem_name = ft_strjoin_modif("/sem_philo_", philo_char_id);
+	free(philo_char_id);
 	return (sem_name);
 }

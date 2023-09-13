@@ -51,6 +51,7 @@ typedef struct s_table
 	int				is_bounded;
 	long long		start_time;
 	struct s_philo	*philos;
+	char			**sem_names;
 	sem_t			*sem_forks;
 	sem_t			*sem_write;
 	sem_t			*sem_stop;
@@ -65,7 +66,6 @@ typedef struct s_philo
 	int				is_dead;
 	long long		death_time;
 	pthread_t		thread;
-	char			*sem_name;
 	sem_t			*lock;
 	t_table			*table;
 }	t_philo;
@@ -76,6 +76,7 @@ int			check_arguments(int argc, char **argv, int i, int j);
 
 int			init_table(t_table *table, char **argv);
 int			init_philosophers(t_table *table);
+char  		**process_sem(t_table *table);
 
 void		philo_lifecycle(t_philo *philo);
 void		philo_sleep(int time_ms);

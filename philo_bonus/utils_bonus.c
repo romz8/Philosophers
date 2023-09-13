@@ -12,6 +12,11 @@
 
 #include "philo_bonus.h"
 
+/*
+converting the gettimeofday sys call that fill the tv object with seconds and
+microseconds value - we need to convert seconds to ms (*1000) and from 
+microsecond (10^-6)to millisecond (10^-3) so divide by 10^3
+*/
 long long	get_time_ms(void)
 {
 	struct timeval	tv;
@@ -20,13 +25,12 @@ long long	get_time_ms(void)
 	return (tv.tv_sec * 1000 + (tv.tv_usec / 1000));
 }
 
+/*
+passing a ms value and using usleep(micosec)
+*/
 void	philo_sleep(int time_ms)
 {
-	long long	time;
-
-	time = get_time_ms();
-	while (get_time_ms() - time < time_ms)
-		usleep(100);
+	usleep(time_ms * 1000);
 }
 
 /*
@@ -52,7 +56,7 @@ void	message(t_philo *philo, int type)
 	else if (type == FINISHED)
 		printf(PINK "%lld %i FINISHED\n" RESET, timing, philo->id);
 	else if (type == FORK)
-		printf("%lld %i has taken a fork\n", timing, philo->id);
+		printf(RESET "%lld %i has taken a fork\n" RESET, timing, philo->id);
 	else if (type == EATING)
 		printf(GREEN "%lld %i is eating\n" RESET, timing, philo->id);
 	else if (type == SLEEPING)
@@ -69,8 +73,6 @@ int	ft_exit(t_table *table, int exit_code)
 		free(table->philo_pids);
 	if (table->philos)
 		free(table->philos);
-	sem_close(table->sem_stop);
-	sem_close(table->sem_write);
 	exit(exit_code);
 }
 
@@ -80,13 +82,24 @@ sem_t *safe_sem_init(char *sem_name, int value)
 	return (sem_open(sem_name, O_CREAT | O_EXCL, 0666, value));
 }
 
-int clear_programme(t_table *table)
+int	clear_programme(t_table *table)
 {
+	// int	i;
+	// i = 0;
+	// while (i < table->total)
+	// {
+	// 	if (table->sem_names)
+	// 	{
+	// 		if (table->sem_names[i])
+	// 			free(table->sem_names[i]);
+	// 	}
+	// 	i++;
+	// }
 	sem_close(table->sem_write);
 	sem_close(table->sem_stop);
 	sem_close(table->sem_forks);
 	sem_unlink(SEM_STOP);
 	sem_unlink(SEM_WRITE);
 	sem_unlink(SEM_FORKS);
-	return(ft_exit(table, EXIT_SUCCESS));
+	return (ft_exit(table, EXIT_SUCCESS));
 }

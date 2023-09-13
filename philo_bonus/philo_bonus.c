@@ -38,6 +38,7 @@ int	main(int argc, char **argv)
 	simulation_monitor(&table);
 	sem_wait(table.sem_stop);	
 	clear_programme(&table);
+	exit(EXIT_SUCCESS);
 }
 
 
@@ -61,9 +62,28 @@ int	init_table(t_table *table, char **argv)
 	table->sem_forks = safe_sem_init(SEM_FORKS, table->total);
 	table->sem_write = safe_sem_init(SEM_WRITE, 1);
 	table->sem_stop = safe_sem_init(SEM_STOP, 0);
+	table->sem_names = process_sem(table);
+	if (!table->sem_names)
+		ft_exit(table, EXIT_FAILURE);
 	return (0);
 }
 
+char  **process_sem(t_table *table)
+{
+	char	**names;
+	int		i;
+
+	names = malloc(sizeof(char *) * table->total);
+	if (!names)
+		return (NULL);
+	i = 0;
+	while (i < table->total)
+	{
+		names[i] = custom_sem_philo(i + 1);
+		i++;
+	}
+	return (names);
+}
 /*
 we init our threads based on our nber of philosophers
 1. receive table DS and from there take the nber of philo input
@@ -95,8 +115,7 @@ int	init_philosophers(t_table *table)
 		philo[i].is_eating = 0;
 		philo[i].is_dead = 0;
 		philo[i].table = table;
-		philo[i].sem_name = custom_sem_philo(philo[i].id);
-		philo[i].lock = safe_sem_init(philo[i].sem_name, 1);
+		philo[i].lock = safe_sem_init(table->sem_names[i], 1);
 	}
 	table->philos = philo;
 	return (0);
