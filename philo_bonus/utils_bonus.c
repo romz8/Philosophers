@@ -40,7 +40,8 @@ this function display what event philospher of id X did a what time
 2. based on the type of message invoked, display the correct message with philo
  id and time_diff
 3. if the philosopher DIED -> increased death count
-4. unlock the mutex code so waiting philosopher can expess themselves
+4. unlock the mutex code so waiting philosopher can expess themselves - unless
+the philo died : we escape without releasing the semaphore to lock stdout
 */
 void	message(t_philo *philo, int type)
 {

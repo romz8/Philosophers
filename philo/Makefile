@@ -12,7 +12,7 @@
 
 
 CC = cc
-FLAGS = -Wall -Wextra -Werror -MMD -I/. #-pthread -fsanitize=thread -g 
+FLAGS = -Wall -Wextra -Werror -MMD -I/. -pthread
 
 SRC =  philo.c utils.c simulation.c philosopher_life.c parsing.c init.c exit.c
 OBJS = $(SRC:.c=.o)

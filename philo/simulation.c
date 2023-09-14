@@ -17,7 +17,8 @@ we "activate" the thread in each philo object and start its philo routine
 2. we iniate the start time in the table object using a mutex to be sure.
 you can see in the philo_routine taht no trhead starts while the start_time is
 set up.
-3. we join all the threads to wait for their execution.
+we join all the threads to wait for their execution later on 
+in the simulation_monitor)
 */
 int	start_simulation(t_philo *philo, t_table *table)
 {
@@ -48,10 +49,11 @@ check that the simulation should continue based on conditions (philos are alive)
 or reached maximum number of meals - return 0 if should stop, otherwise 1
 1. traverse the array of philo objects
 2. lock the object and extract the expected death_time and if philo finished
-3. if current time overpass deat_time and he/she is not eathing or he/she is
-not finished -> kill the philosopher (or declare it dead, as you wish) 
+3. if current time overpass death_time and he/she is not eating or is
+not finished -> kill the philosopher (or declare dead, as you wish) 
+and stop the simulation (return 0)
 4. if the total of people who finished eating is the number of philos, stop
-the simulation
+the simulation 
 */
 int	simulation_continue(t_table *table, int total_finished, int i)
 {
@@ -83,7 +85,7 @@ int	simulation_continue(t_table *table, int total_finished, int i)
 
 /*
 The routine associated to the simulation monitor: always return NULL.
-1. take void pointer as input, convert it back to t_philo type
+1. take void pointer as input, convert it back to t_table type
 2. constantly run a check if the simulation should stop or not - usleep
 to avoid too much pressure on CPU - and exit as soon as simulation 
 shoud stop
@@ -105,6 +107,9 @@ void	*simulation_routine(void *input)
 /*
 monitoring if the simuluation should stop and close all the thread
 accordingly if so
+1. Launch the monitor and wait for its execution with pthread_join()
+2. Once done -> join all the thread (as the simulation stop that
+tantamounts to closing them all)
 */
 int	simulation_monitor(t_table *table)
 {
@@ -126,8 +131,9 @@ int	simulation_monitor(t_table *table)
 }
 
 /*
+This is used in the philo threads at the local level to check if dinner is over
 - take the table object as input and return 1 if simulation condition indicates
-the end, else return 1
+we should continue, else return 0
 - objective : used in the simulation thead to check on if philosophers or 
 have eaten enough 
 - get the flag(is_over) in the simulation table object with "flash access" mutex 

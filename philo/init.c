@@ -13,10 +13,13 @@
 #include "philo.h"
 
 /*
-1. we allocate N memory space of size N as nbr forks = nbr phillo
-2. malloc protected
-3. we init all the mutexes in the mallocated mutex array
+1. we allocate N memory space of size N-mutex byte as nbr forks = nbr phillo
+2. malloc protected - it out-of-memory we clean and return 1
+3. we init all the mutexes in the mallocated mutex array - if issue (
+return value not zero -> function return 1 and main will exit clean
+)
 4. we make the forks pointer in table DS point toward our array
+5. return 0 to signal all went without errors
 */
 int	init_forks(pthread_mutex_t *forks, t_table *table)
 {
@@ -41,19 +44,20 @@ int	init_forks(pthread_mutex_t *forks, t_table *table)
 }
 
 /*
-we init our threads based on our nber of philosophers
-1. receive table DS and from there take the nber of philo input
-to allocated an array of philo struct - malloc protected and if 
-issue free the table object.
-2. fill the struct in the array for all philo : it's id, init nber of
-meals, if it has a cap, and fill in the forks and table data.
-3. the forks are filled as follwo : forks array goes from 0 to N -1 and 
-philo id go from 1 to N : philo 1 has fork[0] o his left and fork[1] on 
+we init our philosophers data structure
+1. from t_table DS we know the nber of philo input : We allocate
+an array of philo struct - malloc protected and if issue free 
+and return value to indicate the issue.
+2. fill the struct in the array for all philo with local data : 
+it's id, init nber of meals, finsih state, and fill in the forks and table data.
+3. the forks are passed as follow : forks array goes from 0 to N -1 and 
+philo id go from 1 to N : philo 1 has fork[0] on his left and fork[1] on 
 his right, philo 2 has fork[1] and fork[2], ..., philo n has fork[n - 1] and
 fork [0]. so we fill the philo of id [i + 1] with left_mutex pointer has fork[i]
 and the left fork[i + 1] and make it modulo nber of philo so that philo [n] left
 fork is [n % n] = 0.
-4. we return the philo array
+4.init a locker on the philo object for concurrency protection - protected
+5. we return the philo array
 */
 t_philo	*init_philosophers(t_table *table)
 {

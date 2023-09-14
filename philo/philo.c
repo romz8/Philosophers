@@ -13,16 +13,13 @@
 #include "philo.h"
 
 /* 
-1. We declare a table and philo data structure then check arguments are 
-correct
-2. we fill the table data from arguments, special case if user entered a 
-max nber of meal
-3. we init the mutex of the table object(that will be use when a thread modify
- a table
-data like deat_count and start time)
-4. we init the forks data struct (an array of N forks, all mutexes)
-5. we init philosopers (see below)
-6. destroy the Mutexes and free Data struct
+1. We check that all arguments are correct (min 5, max 6) all positive nbers
+2. We init a table, forks (mutex) and philo data structure 
+3. we link them all together via poiters to each other to ensure the 
+simulation never miss a local event (at the philo scale) and vice versa
+3. we launch the simulation
+5. we launch the monitoring the conditions
+6. free and exit (destroy the Mutexes and free Data struct - then quit)
 */
 int	main(int argc, char **argv)
 {

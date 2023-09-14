@@ -14,10 +14,12 @@
 
 /*
 Take the philo instance as an input, return nothing and  
-run eat + sleep consecutives routines
-1. use lock forsk mutex in left-right order to avoid data race
-2. mutex the philosopher object to prevent eating / dying at same time
-3. update philosopher xext death_time as per time_die in the table object
+run eat + sleep + think consecutives routines
+1. use forks mutex in left-right order to avoid data race while locking 
+the forks
+2. mutex the philosopher object to prevent eating / dying at same time as well
+as avoiding time updating vs time catching in the routine check.
+3. update philosopher next death_time as per time_die in the table object
 4. unlock philo mutex
 5. put down forks (release the mutex) in the same order to avoid deadlock
 6. put philo to sleep as per sleep-time in table object and with ms adjsutment
@@ -49,8 +51,8 @@ back to t_philo pnters. return a void pointer (as per pthread_create)
 and run philo_routine as long as no death.
 1. convert void * to t_philo * 
 2. create randomness to avoid deadlock (all philo reach their left 
-ork at the same time and wait each other) - so if even 
-philo_id -> start sligthly later
+fork at the same time and wait each other) - so if even 
+philo_id, it will start the routine sligthly later
 3. init the first time to die for a philo as he haven't eaten yet
 4. while the simulation condition are correct, the philosopher executes his
 eat / sleep / think rountines
@@ -71,6 +73,9 @@ void	*philo_routine(void *input)
 	return (NULL);
 }
 
+/* 
+special case of one philosopher (only one fork and bound to die)
+*/
 void	*philone_routine(void *input)
 {
 	t_philo		*philo;
@@ -116,6 +121,14 @@ void	output_message(t_philo *philo, int type, long long start_time)
 		start_time, philo->id);
 }
 
+/*
+the part of the philo_rountine that run in a loop (separated here because
+42 norms implies 1 function = 25 lines)
+1. while the simulation conditons (see simulation.c) do :
+2. philo life_cycle
+3. if the meal count is now on the bounded target from user input :
+write to stdout, indicate philo finished eating and break the loop
+*/
 void	life_simulation(t_philo *philo)
 {
 	while (simulation_conditions(philo->table))
