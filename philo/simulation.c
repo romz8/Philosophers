@@ -66,8 +66,7 @@ int	simulation_continue(t_table *table, int total_finished, int i)
 		death_time = table->philos[i].death_time;
 		is_finished = table->philos[i].is_finished;
 		pthread_mutex_unlock(&table->philos[i].philo_lock);
-		if (get_time_ms() >= death_time && death_time \
-		&& !table->philos[i].is_eating && !is_finished)
+		if (get_time_ms() >= death_time && death_time && !is_finished)
 		{
 			message(&table->philos[i], DIED);
 			return (0);

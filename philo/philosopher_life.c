@@ -32,12 +32,10 @@ void	philo_lifecycle(t_philo *philo)
 	message(philo, FORK);
 	pthread_mutex_lock(&philo->philo_lock);
 	message(philo, EATING);
-	philo->is_eating = 1;
 	philo->death_time = get_time_ms() + philo->table->time_die;
 	philo->meal_count++;
-	philo_sleep(philo->table->time_eat);
-	philo->is_eating = 0;
 	pthread_mutex_unlock(&philo->philo_lock);
+	philo_sleep(philo->table->time_eat);
 	pthread_mutex_unlock(philo->left_fork);
 	pthread_mutex_unlock(philo->right_fork);
 	message(philo, SLEEPING);
